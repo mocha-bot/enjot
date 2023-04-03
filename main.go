@@ -8,10 +8,12 @@ import (
 	"syscall"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/mocha-bot/enjot/config"
 
 	httpInternal "github.com/mocha-bot/enjot/handler/http"
 	"github.com/mocha-bot/enjot/pkg/logger"
+	middlewareInternal "github.com/mocha-bot/enjot/pkg/middleware"
 )
 
 func main() {
@@ -22,6 +24,12 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 
 	r := chi.NewRouter()
+
+	r.Use(middlewareInternal.Logger())
+	r.Use(middleware.Recoverer)
+
+	// health check handler
+	r.Get("/health", httpInternal.HealthCheck)
 
 	httpInternal.NewDummyHandler(r)
 
