@@ -34,16 +34,10 @@ func (w *workspaceRepository) Create(ctx context.Context, name string, userID uu
 		return entity.Workspace{}, err
 	}
 
-	timestamp := entity.CreatedAt()
-
 	workspaceEntity := entity.Workspace{
 		ID:     id,
 		Name:   name,
 		UserID: userID,
-		Timestamp: entity.Timestamp{
-			CreatedAt: timestamp.CreatedAt,
-			UpdatedAt: timestamp.UpdatedAt,
-		},
 	}
 
 	err = w.db.Table(TABLE).
@@ -121,7 +115,6 @@ func (w *workspaceRepository) Update(
 		Where("id = ?", workspaceID).
 		Updates(map[string]interface{}{
 			"name":       name,
-			"updated_at": time.Now().UTC(),
 			"updated_by": updatedBy,
 		}).
 		Error
