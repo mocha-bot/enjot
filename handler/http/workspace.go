@@ -49,7 +49,7 @@ func (h *workspaceHandler) GetWorkspace(w http.ResponseWriter, r *http.Request) 
 		offset = 0
 	}
 
-	workspaceList, err := h.usecase.GetWorkspace(r.Context(), limit, offset)
+	workspaceList, err := h.usecase.GetWorkspaces(r.Context(), limit, offset)
 
 	if err != nil {
 		parseToErrorMsg(w, http.StatusInternalServerError, err)

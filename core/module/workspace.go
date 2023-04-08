@@ -9,27 +9,13 @@ import (
 )
 
 type WorkspaceUsecase interface {
-	GetWorkspace(
-		ctx context.Context,
-		limit int,
-		offset int,
-	) (entity.WorkspaceList, error)
+	GetWorkspaces(ctx context.Context, limit int, offset int) (entity.WorkspaceList, error)
 
-	CreateWorkspace(
-		ctx context.Context,
-		name string,
-	) (entity.Workspace, error)
+	CreateWorkspace(ctx context.Context, name string) (entity.Workspace, error)
 
-	UpdateWorkspace(
-		ctx context.Context,
-		workspaceID uuid.UUID,
-		name string,
-	) error
+	UpdateWorkspace(ctx context.Context, workspaceID uuid.UUID, name string) error
 
-	DeleteWorkspace(
-		ctx context.Context,
-		workspaceID uuid.UUID,
-	) error
+	DeleteWorkspace(ctx context.Context, workspaceID uuid.UUID) error
 }
 
 type workspaceUsecase struct {
@@ -64,7 +50,7 @@ func (w *workspaceUsecase) DeleteWorkspace(ctx context.Context, workspaceID uuid
 	return w.workspaceRepo.Delete(ctx, workspaceID)
 }
 
-func (w *workspaceUsecase) GetWorkspace(
+func (w *workspaceUsecase) GetWorkspaces(
 	ctx context.Context,
 	limit int,
 	offset int,
