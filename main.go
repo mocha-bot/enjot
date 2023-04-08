@@ -9,11 +9,15 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/mocha-bot/enjot/config"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 
+	"github.com/mocha-bot/enjot/config"
+	workspaceUsecase "github.com/mocha-bot/enjot/core/module"
 	httpInternal "github.com/mocha-bot/enjot/handler/http"
 	"github.com/mocha-bot/enjot/pkg/logger"
 	middlewareInternal "github.com/mocha-bot/enjot/pkg/middleware"
+	workspaceRepository "github.com/mocha-bot/enjot/repository"
 )
 
 func main() {
@@ -23,7 +27,23 @@ func main() {
 
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 
+	db, err := gorm.Open(mysql.Open(cfg.Database.Mysql.DSN()), &gorm.Config{})
+
+	if err != nil {
+		logger.Fatal().
+			Err(err).
+			Caller().
+			Str("context", "gorm.open.connection").
+			Msg("failed open connection to database")
+	}
+
 	r := chi.NewRouter()
+
+	// initialize repository
+	workspaceRepo := workspaceRepository.NewWorkspaceRepository(db)
+
+	// initialize usecase
+	workspaceUC := workspaceUsecase.NewWorkspaceUsecase(workspaceRepo)
 
 	r.Use(middlewareInternal.Logger())
 	r.Use(middleware.Recoverer)
@@ -32,6 +52,13 @@ func main() {
 	r.Get("/health", httpInternal.HealthCheck)
 
 	httpInternal.NewDummyHandler(r)
+
+	r.Route("/api", func(r chi.Router) {
+		r.Group(func(r chi.Router) {
+			r.Use(middlewareInternal.Authorization([]byte(cfg.TokenKeySecret)))
+			httpInternal.NewWorkspaceHandler(r, workspaceUC)
+		})
+	})
 
 	srv := &http.Server{
 		Addr:         cfg.Server.Address(),
@@ -60,7 +87,7 @@ func main() {
 	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), cfg.Server.WaitGracefulTimeout)
 	defer cancel()
 
-	err := srv.Shutdown(ctxWithTimeout)
+	err = srv.Shutdown(ctxWithTimeout)
 
 	if err != nil {
 		logger.Error().
