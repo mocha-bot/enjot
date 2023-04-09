@@ -7,5 +7,10 @@ type Workspace struct {
 	Name   string    `gorm:"column:name"`
 	UserID uuid.UUID `gorm:"column:user_id"`
 	Timestamp
-	UpdatedBy uuid.UUID `gorm:"column:updated_by"`
+	UpdatedBy uuid.UUID `gorm:"-"`
+}
+
+type WorkspaceList struct {
+	Workspaces []Workspace
+	Page       Page
 }

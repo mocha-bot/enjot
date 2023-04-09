@@ -24,9 +24,35 @@ func (s Server) Address() string {
 	return fmt.Sprintf("%s:%d", s.Host, s.Port)
 }
 
+type Mysql struct {
+	Host     string `envconfig:"host"`
+	Port     int    `envconfig:"port"`
+	Username string `envconfig:"username"`
+	Password string `envconfig:"password"`
+	DBName   string `envconfig:"db_name"`
+}
+
+func (m Mysql) DSN() string {
+	return fmt.Sprintf(
+		"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		m.Username,
+		m.Password,
+		m.Host,
+		m.Port,
+		m.DBName,
+	)
+}
+
+type Database struct {
+	Mysql Mysql `envconfig:"mysql"`
+}
+
 type Configuration struct {
-	Logger Logger `envconfig:"logger"`
-	Server Server `envconfig:"server"`
+	Logger   Logger   `envconfig:"logger"`
+	Server   Server   `envconfig:"server"`
+	Database Database `envconfig:"database"`
+
+	TokenKeySecret string `envconfig:"token_key_secret"`
 }
 
 const NAMESPACE = "enjot"
