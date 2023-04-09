@@ -13,17 +13,18 @@ import (
 )
 
 const (
-	TABLE         = "workspace"
 	DEFAULT_LIMIT = 10
 )
 
 type workspaceRepository struct {
-	db *gorm.DB
+	db    *gorm.DB
+	table string
 }
 
 func NewWorkspaceRepository(db *gorm.DB) repoIntf.WorkspaceRepository {
 	return &workspaceRepository{
-		db: db,
+		db:    db,
+		table: "workspace",
 	}
 }
 
@@ -40,7 +41,7 @@ func (w *workspaceRepository) Create(ctx context.Context, name string, userID uu
 		UserID: userID,
 	}
 
-	err = w.db.Table(TABLE).
+	err = w.db.Table(w.table).
 		Create(&workspaceEntity).
 		Error
 
@@ -52,7 +53,7 @@ func (w *workspaceRepository) Create(ctx context.Context, name string, userID uu
 }
 
 func (w *workspaceRepository) Delete(ctx context.Context, workspaceID uuid.UUID) error {
-	return w.db.Table(TABLE).
+	return w.db.Table(w.table).
 		Where("id = ?", workspaceID).
 		Update("deleted_at", time.Now().UTC()).
 		Error
@@ -62,7 +63,7 @@ func (w *workspaceRepository) List(
 	ctx context.Context,
 	page entity.Page,
 ) (entity.WorkspaceList, error) {
-	stmt := w.db.Table(TABLE).
+	stmt := w.db.Table(w.table).
 		Where("deleted_at IS NULL").
 		Offset(page.Offset)
 
@@ -111,7 +112,7 @@ func (w *workspaceRepository) Update(
 	name string,
 	updatedBy uuid.UUID,
 ) error {
-	return w.db.Table(TABLE).
+	return w.db.Table(w.table).
 		Where("id = ?", workspaceID).
 		Updates(map[string]interface{}{
 			"name":       name,
