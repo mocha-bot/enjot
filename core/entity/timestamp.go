@@ -8,7 +8,7 @@ type Timestamp struct {
 	DeletedAt time.Time `gorm:"-"`
 }
 
-func CreatedAt() Timestamp {
+func Generate() Timestamp {
 	now := time.Now().UTC()
 
 	return Timestamp{
